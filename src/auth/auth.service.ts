@@ -7,6 +7,8 @@ import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from './role.enum';
 import * as bcrypt from 'bcrypt';
+import { User } from 'src/users/entities/users.entity';
+import { CreateUserDto } from 'src/users/dto/create-users.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,17 +18,15 @@ export class AuthService {
   ) {}
 
   async signUp(
-    username: string,
-    email: string,
-    pass: string,
+    data: CreateUserDto,
   ): Promise<{ access_token: string; message: string }> {
-    const User = await this.usersService.findOne({ username });
-    if (User) {
+    const { username, password, email } = data;
+    const userExist = await this.usersService.findOne({ username });
+    if (userExist) {
       throw new BadRequestException('user already exists');
     }
-
-    const hashedPassword = await bcrypt.hash(pass, 10);
-    const user = await this.usersService.create({
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await this.usersService.create({
       username,
       email,
       password: hashedPassword,
@@ -34,10 +34,10 @@ export class AuthService {
     });
 
     const payload = {
-      username: user.username,
-      role: user.role,
+      username,
+      role: newUser?.role,
     };
-
+    
     return {
       message: 'the user create sucsses',
       access_token: await this.jwtService.signAsync(payload),

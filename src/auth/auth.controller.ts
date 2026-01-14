@@ -12,6 +12,7 @@ import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { Roles } from './roles.decorator';
 import { Role } from './role.enum';
+import { CreateUserDto } from 'src/users/dto/create-users.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -22,14 +23,11 @@ export class AuthController {
   signIn(@Body() signInDto: Record<string, any>) {
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
+  
   @HttpCode(HttpStatus.CREATED)
   @Post('signup')
-  signUp(@Body() signUpDto: Record<string, any>) {
-    return this.authService.signUp(
-      signUpDto.username,
-      signUpDto.email,
-      signUpDto.password,
-    );
+  signUp(@Body() signUpDto: CreateUserDto ) {
+    return this.authService.signUp(signUpDto);
   }
 
   @UseGuards(AuthGuard)

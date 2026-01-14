@@ -1,26 +1,55 @@
-import { Injectable } from '@nestjs/common';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
+import { InjectModel } from '@nestjs/sequelize';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Assignment } from './entities/assignment.entity';
 
 @Injectable()
 export class AssignmentsService {
-  create(createAssignmentDto: CreateAssignmentDto) {
-    return 'This action adds a new assignment';
+  constructor(
+    @InjectModel(Assignment)
+    private readonly assModel: typeof Assignment,
+  ) {}
+
+  findOne(params: Record<string, any>): Promise<Assignment | null> {
+    return this.assModel.findOne({
+      where: params,
+    });
   }
 
-  findAll() {
-    return `This action returns all assignments`;
+  async create(user: CreateAssignmentDto): Promise<Assignment | null> {
+    const newAssignment = await this.assModel.create({ ...user });
+    return newAssignment;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} assignment`;
+  async getAll(): Promise<{ message: string; data: Assignment[] }> {
+    const allAssignments = await this.assModel.findAll();
+    return {
+      message: 'the commander login sucsses',
+      data: allAssignments,
+    };
   }
 
-  update(id: number, updateAssignmentDto: UpdateAssignmentDto) {
-    return `This action updates a #${id} assignment`;
+  async removeById(id: string): Promise<{ message: string }> {
+    const assignment = await this.findOne({ id });
+    if (!assignment) {
+      throw new UnauthorizedException('usern not found');
+    }
+    await assignment.destroy();
+    return {
+      message: 'the assignment removed sucsses',
+    };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} assignment`;
+  async getByid(id: string): Promise<{ message: string; data: any }> {
+    const assignment = await this.findOne({ id });
+
+    if (!assignment) {
+      throw new UnauthorizedException('username not found');
+    }
+    return {
+      message: 'data of the assignment: ',
+      data: assignment,
+    };
   }
 }

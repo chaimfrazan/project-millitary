@@ -1,18 +1,33 @@
-import { Table, Column, Model, DataType } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  ForeignKey,
+  BelongsTo,
+} from 'sequelize-typescript';
+import { Shift } from 'src/shifts/entities/shift.entity';
+import { User } from 'src/users/entities/users.entity';
 
 @Table
 export class Assignment extends Model {
+  @ForeignKey(() => User)
   @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    unique: true,
-  })
-  declare userId: string;
-
-  @Column({
-    type: DataType.STRING,
+    type: DataType.NUMBER,
     allowNull: false,
   })
-  declare shiftId: string;
+  declare userId: number;
 
+  @ForeignKey(() => Shift)
+  @Column({
+    type: DataType.NUMBER,
+    allowNull: false,
+  })
+  declare shiftId: number;
+
+  @BelongsTo(() => User)
+  users: User;
+
+  @BelongsTo(() => Shift)
+  shifts: Shift;
 }

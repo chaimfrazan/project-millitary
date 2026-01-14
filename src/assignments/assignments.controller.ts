@@ -1,34 +1,42 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { Role } from 'src/auth/role.enum';
 import { AssignmentsService } from './assignments.service';
-import { CreateAssignmentDto } from './dto/create-assignment.dto';
-import { UpdateAssignmentDto } from './dto/update-assignment.dto';
+import { RolesGuard } from 'src/auth/roles.guard';
 
-@Controller('assignments')
-export class AssignmentsController {
-  constructor(private readonly assignmentsService: AssignmentsService) {}
-
-  @Post()
-  create(@Body() createAssignmentDto: CreateAssignmentDto) {
-    return this.assignmentsService.create(createAssignmentDto);
-  }
-
+@Controller('users')
+export class UsersController {
+  constructor(private userService: AssignmentsService) {}
+  @Roles(Role.commander)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get()
-  findAll() {
-    return this.assignmentsService.findAll();
+  getAll() {
+    return this.userService.getAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.assignmentsService.findOne(+id);
+  getByid(@Param('id') id: string) {
+    return this.userService.getByid(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAssignmentDto: UpdateAssignmentDto) {
-    return this.assignmentsService.update(+id, updateAssignmentDto);
-  }
-
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.commander)
+  @UseGuards(AuthGuard, RolesGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.assignmentsService.remove(+id);
+  removeById(@Param('id') id: string) {
+    return this.userService.removeById(id);
   }
 }
