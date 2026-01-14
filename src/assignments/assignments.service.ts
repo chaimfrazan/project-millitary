@@ -25,15 +25,15 @@ export class AssignmentsService {
   async getAll(): Promise<{ message: string; data: Assignment[] }> {
     const allAssignments = await this.assModel.findAll();
     return {
-      message: 'the commander login sucsses',
+      message: 'data of all assignmets: ',
       data: allAssignments,
     };
   }
 
-  async removeById(id: string): Promise<{ message: string }> {
+  async removeById(id: number): Promise<{ message: string }> {
     const assignment = await this.findOne({ id });
     if (!assignment) {
-      throw new UnauthorizedException('usern not found');
+      throw new UnauthorizedException('assignment not found');
     }
     await assignment.destroy();
     return {
@@ -41,14 +41,24 @@ export class AssignmentsService {
     };
   }
 
-  async getByid(id: string): Promise<{ message: string; data: any }> {
+  async getByid(id: number): Promise<{ message: string; data: any }> {
     const assignment = await this.findOne({ id });
 
     if (!assignment) {
-      throw new UnauthorizedException('username not found');
+      throw new UnauthorizedException('assignment not found');
     }
     return {
       message: 'data of the assignment: ',
+      data: assignment,
+    };
+  }
+  async upByid(
+    assignment: UpdateAssignmentDto,
+    id: number,
+  ): Promise<{ message: string; data: any }> {
+    await this.assModel.update(assignment, { where: { id } });
+    return {
+      message: 'the user updated sucsses ',
       data: assignment,
     };
   }
