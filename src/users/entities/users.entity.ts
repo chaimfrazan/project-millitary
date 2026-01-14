@@ -1,23 +1,29 @@
 import { Table, Column, Model, DataType } from 'sequelize-typescript';
 
 @Table
-export class shift extends Model {
+export class User extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
     unique: true,
   })
-  declare startTime: string;
+  declare username: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  declare endTime: string;
+  declare email: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  declare location: string;
+  declare password: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  declare role: string;
 }

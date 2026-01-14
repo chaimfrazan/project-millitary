@@ -1,7 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { Role } from './role.enum';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -10,22 +15,53 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  async signUp(
+    username: string,
+    email: string,
+    pass: string,
+  ): Promise<{ access_token: string; message: string }> {
+    const User = await this.usersService.findOne({ username });
+    if (User) {
+      throw new BadRequestException('user already exists');
+    }
+
+    const hashedPassword = await bcrypt.hash(pass, 10);
+    const user = await this.usersService.create({
+      username,
+      email,
+      password: hashedPassword,
+      role: Role.soldier,
+    });
+
+    const payload = {
+      username: user.username,
+      role: user.role,
+    };
+
+    return {
+      message: 'the user create sucsses',
+      access_token: await this.jwtService.signAsync(payload),
+    };
+  }
+
   async signIn(
     username: string,
     pass: string,
-  ): Promise<{ access_token: string }> {
-    const user = await this.usersService.findOne(username);
-    if (user?.password !== pass) {
-      throw new UnauthorizedException();
+  ): Promise<{ access_token: string; message: string }> {
+    const user = await this.usersService.findOne({ username });
+    if (!user || !pass) {
+      throw new UnauthorizedException('username or password are incorrect');
+    }
+    const comPass = await bcrypt.compare(pass, user.password);
+    if (!comPass) {
+      throw new UnauthorizedException('the password are incorrect');
     }
     const payload = {
-      sub: user.userId,
       username: user.username,
-      role: Role.soldier,
+      role: user.role,
     };
     return {
-      // 💡 Here the JWT secret key that's used for signing the payload
-      // is the key that was passsed in the JwtModule
+      message: 'the soldier login sucsses',
       access_token: await this.jwtService.signAsync(payload),
     };
   }

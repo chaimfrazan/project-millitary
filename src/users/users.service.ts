@@ -1,27 +1,43 @@
-import { Injectable } from '@nestjs/common';
-import { Role } from 'src/auth/role.enum';
-
-// This should be a real class/interface representing a user entity
-export type User = any;
+import { User } from './entities/users.entity';
+import { InjectModel } from '@nestjs/sequelize';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      userId: 1,
-      username: 'john',
-      password: 'changeme',
-      role: Role.soldier,
-    },
-    {
-      userId: 2,
-      username: 'maria',
-      password: 'guess',
-      role: Role.commander,
-    },
-  ];
+  constructor(
+    @InjectModel(User)
+    private readonly userModel: typeof User,
+  ) {}
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find((user) => user.username === username);
+  findOne(params: Record<string, any>): Promise<User | null> {
+    return this.userModel.findOne({
+      where: params,
+    });
+  }
+  create(user: any) {
+    return this.userModel.create(user);
+  }
+
+  async getAll(): Promise<{ message: string; data: User[] }> {
+    const allUsers = await this.userModel.findAll();
+    return {
+      message: 'the commander login sucsses',
+      data: allUsers,
+    };
+  }
+
+  async remove(id: string): Promise<{ message: string }> {
+    const user = await this.findOne({ id });
+    if (!user) {
+      throw new UnauthorizedException('username not found');
+    }
+    await user.destroy();
+    return {
+      message: 'the user removed sucsses',
+    };
   }
 }
